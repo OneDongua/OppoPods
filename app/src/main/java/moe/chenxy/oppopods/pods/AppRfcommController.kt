@@ -81,9 +81,20 @@ class AppRfcommController {
                 queryStatus()
 
                 if (autoGameMode) {
-                    delay(100)
+                    // Wait for initial query responses to settle
+                    delay(500)
                     sendPacket(Enums.GAME_MODE_ON)
                     _gameMode.value = true
+                    // Query to verify game mode took effect
+                    delay(300)
+                    sendPacket(Enums.QUERY_STATUS)
+                    // If earbuds report game mode still off, retry
+                    delay(500)
+                    if (!_gameMode.value) {
+                        Log.d(TAG, "Auto game mode: first attempt didn't take, retrying")
+                        sendPacket(Enums.GAME_MODE_ON)
+                        _gameMode.value = true
+                    }
                 }
             } catch (e: IOException) {
                 Log.e(TAG, "RFCOMM connect failed", e)
