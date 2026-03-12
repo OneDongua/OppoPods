@@ -15,6 +15,7 @@ import android.os.Bundle
 import android.util.Log
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
 import com.highcapable.yukihookapi.hook.factory.constructor
+import com.xzakota.hyper.notification.focus.FocusNotification
 import de.robv.android.xposed.XposedHelpers
 import moe.chenxy.oppopods.utils.FocusIslandUtil
 import moe.chenxy.oppopods.utils.SystemApisUtils
@@ -67,14 +68,17 @@ object MiBluetoothToastHook : YukiBaseHooker() {
                         (if (batteryParams.right!!.isCharging) " ⚡" else "")
                 else ""
 
-                val content: String = caseBattStr + leftEar + rightEar
+                val contentText: String = caseBattStr + leftEar + rightEar
                 val notificationManager = context.getSystemService("notification") as NotificationManager
                 notificationManager.createNotificationChannel(
                     NotificationChannel(
                         "BTHeadset$address",
                         alias,
-                        NotificationManager.IMPORTANCE_MIN
-                    )
+                        NotificationManager.IMPORTANCE_DEFAULT
+                    ).apply {
+                        setSound(null, null)
+                        setAllowBubbles(true)
+                    }
                 )
                 val bundle = Bundle()
                 bundle.putParcelable("Device", bluetoothDevice)
@@ -82,17 +86,12 @@ object MiBluetoothToastHook : YukiBaseHooker() {
                 intent.putExtra("btData", bundle)
                 intent.putExtra("disconnect", "1")
                 intent.setIdentifier("BTHeadset$address")
-                val action = Notification.Action(
+                val disconnectAction = Notification.Action(
                     285737079,
                     context.resources.getString(miheadset_notification_Disconnect),
                     PendingIntent.getBroadcast(context, 0, intent, 201326592)
                 )
-                val bundle2 = Bundle()
-                bundle2.putBoolean("miui.showAction", true)
-                bundle2.putParcelable(
-                    "miui.appIcon",
-                    Icon.createWithResource(context, ic_headset_notification)
-                )
+                val headsetIcon = Icon.createWithResource(context, ic_headset_notification)
                 val pendingIntent = PendingIntent.getActivity(
                     context,
                     0,
@@ -101,17 +100,65 @@ object MiBluetoothToastHook : YukiBaseHooker() {
                     },
                     PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
                 )
+                val focusExtras = FocusNotification.buildV3 {
+                    val logo = createPicture("key_headset", headsetIcon)
+                    enableFloat = true
+                    ticker = alias ?: ""
+                    tickerPic = logo
+
+                    iconTextInfo {
+                        animIconInfo{
+                            type = 1
+                            src = logo
+                        }
+                        title = alias ?: ""
+                        content = contentText
+                    }
+
+                    island {
+                        islandProperty = 1
+                        bigIslandArea {
+                            imageTextInfoLeft {
+                                type = 1
+                                picInfo {
+                                    type = 1
+                                    pic = logo
+                                }
+                            }
+                            imageTextInfoRight {
+                                type = 2
+                                textInfo {
+                                    title = alias ?: ""
+                                    content = contentText
+                                }
+                            }
+                        }
+                    }
+
+
+//                    actions {
+//                        addActionInfo {
+//                            action = createAction("key_disconnect", disconnectAction)
+//                        }
+//                    }
+                }
                 notificationManager.notifyAsUser(
                     "BTHeadset$address",
                     10003,
-                    Notification.Builder(context, "BTHeadset$address").setSmallIcon(
-                        android.R.drawable.stat_sys_data_bluetooth
-                    ).setWhen(0L).setTicker(alias).setDefaults(-1).setContentTitle(alias)
-                        .setContentText(content)
+                    Notification.Builder(context, "BTHeadset$address")
+                        .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
+                        .setWhen(0L)
+                        .setTicker(alias)
+                        .setDefaults(-1)
+                        .setContentTitle(alias)
+                        .setContentText(contentText)
                         .setContentIntent(pendingIntent)
-                        .setDeleteIntent(deleteIntent(context, bluetoothDevice)).setColor(
-                            context.getColor(system_notification_accent_color)
-                        ).setExtras(bundle2).addAction(action).setVisibility(Notification.VISIBILITY_PUBLIC).build(),
+                        .setDeleteIntent(deleteIntent(context, bluetoothDevice))
+                        .setColor(context.getColor(system_notification_accent_color))
+                        .addAction(disconnectAction)
+                        .apply { focusExtras?.let { addExtras(it) } }
+                        .setVisibility(Notification.VISIBILITY_PUBLIC)
+                        .build(),
                     SystemApisUtils.getUserAllUserHandle()
                 )
             } catch (e: Exception) {

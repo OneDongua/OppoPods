@@ -108,4 +108,7 @@ dependencies {
 
     // Navigation3
     implementation(libs.navigation3.runtime)
+
+    // HyperOS Focus Island API
+    implementation(libs.focus.api)
 }
