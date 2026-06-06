@@ -1,4 +1,4 @@
-package moe.chenxy.oppopods.ui
+package moe.chenxy.oppopods.ui.pages
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,6 +31,8 @@ fun PodDetailPage(
     batteryParams: BatteryParams,
     ancMode: NoiseControlMode,
     onAncModeChange: (NoiseControlMode) -> Unit,
+    transparencyVocalEnhancement: Boolean = false,
+    onTransparencyVocalEnhancementChange: (Boolean) -> Unit = {},
     gameMode: Boolean = false,
     onGameModeChange: (Boolean) -> Unit = {},
     adaptiveModeEnabled: Boolean = true
@@ -67,9 +69,24 @@ fun PodDetailPage(
             }
         }
 
+        if (ancMode == NoiseControlMode.TRANSPARENCY) {
+            item {
+                Card(
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                ) {
+                    SwitchPreference(
+                        title = stringResource(R.string.transparency_vocal_enhancement),
+                        summary = stringResource(R.string.transparency_vocal_enhancement_summary),
+                        checked = transparencyVocalEnhancement,
+                        onCheckedChange = onTransparencyVocalEnhancementChange
+                    )
+                }
+            }
+        }
+
         item {
             Card(
-                modifier = Modifier.padding(horizontal = 12.dp)
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = if (ancMode == NoiseControlMode.TRANSPARENCY) 12.dp else 0.dp)
             ) {
                 SwitchPreference(
                     title = stringResource(R.string.game_mode),

@@ -22,7 +22,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,8 +62,15 @@ import moe.chenxy.oppopods.R
 import moe.chenxy.oppopods.config.ConfigManager
 import moe.chenxy.oppopods.pods.AppRfcommController
 import moe.chenxy.oppopods.pods.NoiseControlMode
+import moe.chenxy.oppopods.ui.components.AppIcons
 import moe.chenxy.oppopods.ui.components.RestartScope
 import moe.chenxy.oppopods.ui.components.RestartScopeDialog
+import moe.chenxy.oppopods.ui.pages.AboutPage
+import moe.chenxy.oppopods.ui.pages.DevicePickerPage
+import moe.chenxy.oppopods.ui.pages.HomePage
+import moe.chenxy.oppopods.ui.pages.PodDetailPage
+import moe.chenxy.oppopods.ui.pages.SettingsPage
+import moe.chenxy.oppopods.ui.pages.ThemeSettingsPage
 import moe.chenxy.oppopods.utils.RootManager
 import moe.chenxy.oppopods.utils.miuiStrongToast.data.BatteryParams
 import moe.chenxy.oppopods.utils.miuiStrongToast.data.OppoPodsAction
@@ -91,7 +97,6 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.icon.extended.Settings
-import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
@@ -139,12 +144,7 @@ fun MainUI(
     var showDevicePicker by remember { mutableStateOf(false) }
     var showRestartScopeDialog by remember { mutableStateOf(false) }
     var restartingScopes by remember { mutableStateOf(false) }
-    val colorMode = when (themeMode.value) {
-        1 -> ColorSchemeMode.Light
-        2 -> ColorSchemeMode.Dark
-        else -> ColorSchemeMode.System
-    }
-    val backgroundColor = appBackground(colorMode)
+    val backgroundColor = appBackground()
     val overlayBottomBar = floatingBottomBar.value || blurBottomBar.value
     val pageBottomContentPadding = if (overlayBottomBar) 104.dp else 28.dp
     val backdrop = if (blurBottomBar.value) {
@@ -585,7 +585,7 @@ fun MainUI(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(appBackground(colorMode))
+                        .background(backgroundColor)
                         .padding(padding),
                 ) {
                     AboutPage(
@@ -617,7 +617,7 @@ fun MainUI(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(appBackground(colorMode))
+                        .background(backgroundColor)
                         .padding(padding),
                 ) {
                     ThemeSettingsPage(
@@ -730,14 +730,7 @@ private fun MainTab.title(): String = when (this) {
 }
 
 @Composable
-fun appBackground(colorMode: ColorSchemeMode = ColorSchemeMode.System): Color {
-    val dark = when (colorMode) {
-        ColorSchemeMode.System, ColorSchemeMode.MonetSystem -> isSystemInDarkTheme()
-        ColorSchemeMode.Dark, ColorSchemeMode.MonetDark -> true
-        ColorSchemeMode.Light, ColorSchemeMode.MonetLight -> false
-    }
-    return if (dark) Color(0xFF101010) else Color(0xFFF5F5F7)
-}
+fun appBackground(): Color = MiuixTheme.colorScheme.surface
 
 private data class BluetoothSummary(
     val enabled: Boolean,

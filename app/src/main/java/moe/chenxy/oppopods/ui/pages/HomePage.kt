@@ -1,4 +1,4 @@
-package moe.chenxy.oppopods.ui
+package moe.chenxy.oppopods.ui.pages
 
 import android.content.Context
 import android.os.Build
@@ -30,6 +30,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import moe.chenxy.oppopods.R
+import moe.chenxy.oppopods.ui.components.AppIcons
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
